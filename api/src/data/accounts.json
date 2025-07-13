@@ -1,0 +1,16 @@
+{
+  "POL-789123": {
+    "accountId": "POL-789123",
+    "balance": 25000.00,
+    "currency": "ZAR",
+    "accountType": "POLICY",
+    "lastUpdated": "2024-07-13T00:00:00.000Z"
+  },
+  "INV-456789": {
+    "accountId": "INV-456789",
+    "balance": 150000.00,
+    "currency": "ZAR",
+    "accountType": "INVESTMENT",
+    "lastUpdated": "2024-07-13T00:00:00.000Z"
+  }
+} 

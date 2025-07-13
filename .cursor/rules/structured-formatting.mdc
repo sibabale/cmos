@@ -1,0 +1,180 @@
+---
+alwaysApply: true
+---
+
+# Structured Formatting Rule
+
+## Core Principle
+**Always use the consistent structured formatting approach with clear section dividers and organized commenting.**
+
+## File Structure Requirements
+
+### 1. File Header
+Every file must start with:
+```js
+// [ MAIN_DIR > SUB_DIR > FILE_NAME;L,OZXQ2 ] ##########################################################################
+```
+
+### 2. Dependency Sections
+```js
+// 1.1. EXTERNAL DEPENDENCIES ......................................................................
+// Add your external dependencies here (npm packages, node modules)
+// 1.1. END ........................................................................................
+
+// 1.2. INTERNAL DEPENDENCIES ......................................................................
+// Add your internal dependencies here (your project's modules)
+// 1.2. END .......................................................................................
+```
+
+### 3. Module/Namespace Section
+```js
+// 1.3. MODULE ...................................................................................
+// (Optional) Module or namespace pattern if used
+```
+
+### 4. Class/Function Structure
+```js
+    // 1.4. [CLASS_TYPE] ............................................................................
+    class ClassName {
+        // 1.4.1. FIELDS ...............................................................................
+        // Add your private fields here (use # for private fields in JS, or _ for convention)
+        // 1.4.1. END ..................................................................................
+
+        // 1.4.2. CONSTRUCTOR ..........................................................................
+        constructor(/* Add your dependencies here */) {
+            // Initialize your fields here
+        }
+        // 1.4.2. END ..................................................................................
+
+        // 1.4.3. METHODS ..............................................................................
+        // Add your methods here
+        // 1.4.3. END ..................................................................................
+    }
+    // 1.4. END .......................................................................................
+```
+
+### 5. File Footer
+Every file must end with:
+```js
+// END FILE ########################################################################################
+```
+
+## Section Guidelines
+
+### For Services
+- **1.4.1. FIELDS**: Private fields, dependencies
+- **1.4.2. CONSTRUCTOR**: Dependency injection or initialization
+- **1.4.3. METHODS**: Public methods, business logic
+
+### For Controllers
+- **1.4.1. FIELDS**: Private fields, service dependencies
+- **1.4.2. CONSTRUCTOR**: Dependency injection or initialization
+- **1.4.3. METHODS**: Public endpoints, API methods
+
+### For Models
+- **1.4.1. PROPERTIES**: Public properties
+
+### For Interfaces/Types (TypeScript)
+- **1.4.1. METHODS**: Method signatures only
+
+## Visual Separators
+- Use `##########################################################################` for major section dividers
+- Use `................................................................................` for subsection dividers
+- Always include `END` comments for each section
+
+## Naming Conventions
+- **File Header**: `[ MAIN_DIR > SUB_DIR ]` (e.g., `[ SERVICES > ALPHA VANTAGE ]`)
+- **Class Section**: `[CLASS_TYPE]` (e.g., `SERVICE CLASS`, `CONTROLLER CLASS`, `INTERFACE`)
+- **Subsections**: Use descriptive names like `FIELDS`, `METHODS`, `PROPERTIES`
+
+## Implementation Guidelines
+
+### What to Include
+- **Structural comments** that guide file organization
+- **Section dividers** for clear visual separation
+- **Placeholder comments** indicating where code should go
+
+### What NOT to Include
+- **Implementation-specific comments** (like "JSON PARSING", "DATA MAPPING")
+- **Over-commenting** of simple operations
+- **Nested section comments** within methods
+
+## Examples
+
+### ✅ Good Structure
+```js
+// [ SERVICES > STOCK SERVICE ] ##########################################################################
+
+// 1.1. EXTERNAL DEPENDENCIES ......................................................................
+const axios = require('axios');
+// 1.1. END ........................................................................................
+
+// 1.2. INTERNAL DEPENDENCIES ......................................................................
+const { StockData } = require('../models/StockData');
+// 1.2. END ........................................................................................
+
+// 1.3. MODULE ...................................................................................
+// (Optional) Module pattern or namespace if needed
+
+// 1.4. SERVICE CLASS ............................................................................
+class StockService {
+    // 1.4.1. FIELDS ...............................................................................
+    #httpClient;
+    // 1.4.1. END ..................................................................................
+
+    // 1.4.2. CONSTRUCTOR ..........................................................................
+    constructor(httpClient) {
+        this.#httpClient = httpClient;
+    }
+    // 1.4.2. END ..................................................................................
+
+    // 1.4.3. METHODS ..............................................................................
+    async getStockData(symbol) {
+        // Implementation here
+    }
+    // 1.4.3. END ..................................................................................
+}
+// 1.4. END .......................................................................................
+// END FILE ########################################################################################
+```
+
+### ❌ Bad Structure
+```js
+const axios = require('axios');
+const { StockData } = require('../models/StockData');
+
+class StockService {
+    #httpClient;
+
+    constructor(httpClient) {
+        this.#httpClient = httpClient;
+    }
+
+    async getStockData(symbol) {
+        // API CALL .......................................................................
+        const response = await this.#httpClient.get(url);
+        // API CALL END ..............................................................................
+
+        // JSON PARSING ....................................................................
+        const data = JSON.parse(response.data);
+        // JSON PARSING END ..............................................................................
+
+        return data;
+    }
+}
+```
+
+## Remember
+- **Structure guides organization, not implementation**
+- **Keep it simple and consistent**
+- **Use visual separators for clarity**
+- **Always include END comments**
+- **Follow the established hierarchy**
+description:
+globs:
+alwaysApply: false
+---
+description:
+globs:
+alwaysApply: false
+---

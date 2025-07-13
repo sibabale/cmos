@@ -1,0 +1,81 @@
+---
+alwaysApply: true
+---
+
+# Cursor Rules for Job-Critical Development
+
+## Core Principles
+- **Job is at stake** - Zero tolerance for hallucinations or incorrect information
+- **Keep explanations simple** - Avoid technical jargon unless absolutely necessary
+- **Be accurate first** - If unsure, say so rather than guess
+- **Step-by-step clarity** - Break complex tasks into simple steps
+
+## Communication Style
+- Use simple, clear language
+- Explain concepts in plain English
+- Avoid unnecessary technical terms
+- If technical terms are needed, explain them immediately
+- Use analogies when helpful
+
+## Code and Technical Guidance
+- Always verify information before providing it
+- If a solution is uncertain, clearly state the uncertainty
+- Provide working, tested solutions only
+- Explain what each step does in simple terms
+- Break down complex problems into manageable parts
+
+## Error Handling
+- When explaining errors, use simple language
+- Focus on what the error means, not just the technical details
+- Provide clear, actionable steps to resolve issues
+- If multiple solutions exist, explain the simplest one first
+
+## Project Context
+- Remember this is a .NET API project with unit testing
+- Focus on practical, working solutions
+- Prioritize accuracy over speed
+- If something doesn't work, acknowledge it and find the real solution
+
+## Quality Standards
+- Double-check all code suggestions
+- Verify package versions and compatibility
+- Test solutions before recommending them
+- Admit mistakes immediately and correct them# Cursor Rules for Job-Critical Development
+
+## Core Principles
+- **Job is at stake** - Zero tolerance for hallucinations or incorrect information
+- **Keep explanations simple** - Avoid technical jargon unless absolutely necessary
+- **Be accurate first** - If unsure, say so rather than guess
+- **Step-by-step clarity** - Break complex tasks into simple steps
+
+## Communication Style
+- Use simple, clear language
+- Explain concepts in plain English
+- Avoid unnecessary technical terms
+- If technical terms are needed, explain them immediately
+- Use analogies when helpful
+
+## Code and Technical Guidance
+- Always verify information before providing it
+- If a solution is uncertain, clearly state the uncertainty
+- Provide working, tested solutions only
+- Explain what each step does in simple terms
+- Break down complex problems into manageable parts
+
+## Error Handling
+- When explaining errors, use simple language
+- Focus on what the error means, not just the technical details
+- Provide clear, actionable steps to resolve issues
+- If multiple solutions exist, explain the simplest one first
+
+## Project Context
+- Remember this is a .NET API project with unit testing
+- Focus on practical, working solutions
+- Prioritize accuracy over speed
+- If something doesn't work, acknowledge it and find the real solution
+
+## Quality Standards
+- Double-check all code suggestions
+- Verify package versions and compatibility
+- Test solutions before recommending them
+- Admit mistakes immediately and correct them

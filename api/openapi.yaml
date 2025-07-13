@@ -1,0 +1,748 @@
+openapi: 3.0.3
+info:
+  title: CMOS Account Management API
+  version: 1.0.0
+  description: |
+    Old Mutual's CMOS Account Management API provides standardized access to TCS BaNCS Core Modern Operating System (CMOS) for account operations across all departments.
+    
+    This API simplifies complex mainframe interactions into modern REST endpoints for:
+    - Premium collections (Sales Team)
+    - Claims payouts (Claims Department) 
+    - Investment returns (Private Wealth)
+    - Account balance queries (All departments)
+    
+    **Key Features:**
+    - Real-time transaction processing
+    - Integration with all major SA banks (FNB, Standard Bank, Absa, Nedbank, Capitec)
+    - Built-in compliance validation for SARB reporting
+    - Automatic retry logic for mainframe timeouts
+    - End-to-end encryption and audit trails
+    
+  contact:
+    name: Old Mutual API Team
+    email: api-support@oldmutual.com
+  license:
+    name: Old Mutual Internal Use Only
+    
+servers:
+  - url: https://api.oldmutual.com/cmos/v1
+    description: Production CMOS API
+  - url: https://api-staging.oldmutual.com/cmos/v1
+    description: Staging Environment
+  - url: https://api-sandbox.oldmutual.com/cmos/v1
+    description: Sandbox Environment (Test Data)
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  /accounts/{accountId}/balance:
+    get:
+      tags:
+        - Account Operations
+      summary: Get Account Balance
+      description: |
+        Retrieve the current balance for a policy or investment account from CMOS.
+        
+        **Use Cases:**
+        - Claims Department: Verify account balance before processing payouts
+        - Private Wealth: Check investment account values for client reporting
+        - Sales Team: Validate premium payment capacity
+        - Branches: Provide real-time balance information to customers
+        
+        **CMOS Integration:** Maps to `GET /accounts/{account-id}/balance`
+        
+      operationId: getAccountBalance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(POL|INV|SAV)-[0-9]{6}$'
+            example: "POL-789123"
+          description: |
+            Account identifier in Old Mutual format:
+            - POL-XXXXXX: Policy accounts
+            - INV-XXXXXX: Investment accounts  
+            - SAV-XXXXXX: Savings accounts
+        - name: includeHolds
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include pending holds and reservations in balance calculation
+        - name: currency
+          in: query
+          schema:
+            type: string
+            enum: [ZAR, USD, EUR]
+            default: ZAR
+          description: Currency for balance display
+      responses:
+        '200':
+          description: Account balance retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalance'
+              examples:
+                policy_account:
+                  summary: Policy Account Balance
+                  value:
+                    accountId: "POL-789123"
+                    balance: 15750.50
+                    currency: "ZAR"
+                    availableBalance: 15750.50
+                    pendingHolds: 0.00
+                    lastUpdated: "2024-07-13T10:30:00Z"
+                    accountType: "POLICY"
+                    accountStatus: "ACTIVE"
+                investment_account:
+                  summary: Investment Account Balance
+                  value:
+                    accountId: "INV-456789"
+                    balance: 285670.25
+                    currency: "ZAR"
+                    availableBalance: 285670.25
+                    pendingHolds: 0.00
+                    lastUpdated: "2024-07-13T10:30:00Z"
+                    accountType: "INVESTMENT"
+                    accountStatus: "ACTIVE"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/AccountNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/CMOSUnavailable'
+
+  /accounts/{accountId}/debit:
+    post:
+      tags:
+        - Account Operations
+      summary: Debit Account
+      description: |
+        Process a debit transaction against a policy or investment account.
+        
+        **Use Cases:**
+        - Sales Team: Collect monthly premiums via debit orders
+        - Personal Finance: Process loan repayments
+        - Private Wealth: Deduct management fees
+        - All Departments: Apply service charges and administrative fees
+        
+        **CMOS Integration:** Maps to `POST /accounts/{account-id}/debit`
+        
+        **Important Notes:**
+        - All transactions are processed in real-time through CMOS
+        - Automatic retry logic handles temporary mainframe unavailability
+        - Compliance validation ensures SARB reporting requirements are met
+        - Failed transactions are automatically logged for investigation
+        
+      operationId: debitAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(POL|INV|SAV)-[0-9]{6}$'
+            example: "POL-789123"
+          description: Account identifier to debit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebitRequest'
+            examples:
+              monthly_premium:
+                summary: Monthly Premium Collection
+                value:
+                  amount: 1500.00
+                  currency: "ZAR"
+                  reference: "MONTHLY-PREMIUM-JUL2024"
+                  description: "Monthly premium collection for policy POL-789123"
+                  debitOrder:
+                    bankAccount: "62581234567"
+                    bank: "FNB"
+                    accountHolder: "John Doe"
+                    branchCode: "250655"
+                  metadata:
+                    department: "SALES"
+                    policyNumber: "POL-789123"
+                    premiumType: "MONTHLY"
+              service_fee:
+                summary: Service Fee Deduction
+                value:
+                  amount: 75.00
+                  currency: "ZAR"
+                  reference: "SERVICE-FEE-JUL2024"
+                  description: "Monthly account service fee"
+                  metadata:
+                    department: "OPERATIONS"
+                    feeType: "SERVICE"
+      responses:
+        '200':
+          description: Debit transaction processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                successful_debit:
+                  summary: Successful Debit Transaction
+                  value:
+                    transactionId: "TXN-20240713-001234"
+                    accountId: "POL-789123"
+                    type: "DEBIT"
+                    amount: 1500.00
+                    currency: "ZAR"
+                    status: "COMPLETED"
+                    reference: "MONTHLY-PREMIUM-JUL2024"
+                    description: "Monthly premium collection for policy POL-789123"
+                    processedAt: "2024-07-13T10:30:15Z"
+                    cmosReference: "CMOS-TXN-789123456"
+                    balanceAfter: 14250.50
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientFunds'
+        '404':
+          $ref: '#/components/responses/AccountNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/CMOSUnavailable'
+
+  /accounts/{accountId}/credit:
+    post:
+      tags:
+        - Account Operations
+      summary: Credit Account
+      description: |
+        Process a credit transaction to a policy or investment account.
+        
+        **Use Cases:**
+        - Claims Department: Process insurance claim payouts
+        - Private Wealth: Distribute investment returns and dividends
+        - Sales Team: Process policy maturity payments
+        - All Departments: Refund overpayments and corrections
+        
+        **CMOS Integration:** Maps to `POST /accounts/{account-id}/credit`
+        
+        **Important Notes:**
+        - All credits are processed through SA banking network integration
+        - Automatic compliance validation for large transactions (>R10,000)
+        - Real-time bank transfer initiation for immediate availability
+        - Comprehensive audit trail for regulatory reporting
+        
+      operationId: creditAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(POL|INV|SAV)-[0-9]{6}$'
+            example: "POL-789123"
+          description: Account identifier to credit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditRequest'
+            examples:
+              claim_payout:
+                summary: Insurance Claim Payout
+                value:
+                  amount: 50000.00
+                  currency: "ZAR"
+                  reference: "CLAIM-SETTLEMENT-CS2024789"
+                  description: "Life insurance claim settlement"
+                  beneficiary:
+                    bankAccount: "12345678901"
+                    bank: "Standard Bank"
+                    accountHolder: "Jane Smith"
+                    branchCode: "051001"
+                  metadata:
+                    department: "CLAIMS"
+                    claimNumber: "CS2024789"
+                    claimType: "LIFE_INSURANCE"
+              investment_return:
+                summary: Investment Dividend Payment
+                value:
+                  amount: 8750.00
+                  currency: "ZAR"
+                  reference: "DIVIDEND-PAYMENT-Q2-2024"
+                  description: "Quarterly dividend payment"
+                  beneficiary:
+                    bankAccount: "98765432109"
+                    bank: "FNB"
+                    accountHolder: "Investment Client"
+                    branchCode: "250655"
+                  investmentDetails:
+                    portfolioId: "PW-HIGH-GROWTH-001"
+                    assetClass: "EQUITY-DIVIDENDS"
+                  metadata:
+                    department: "PRIVATE_WEALTH"
+                    portfolioId: "PW-HIGH-GROWTH-001"
+      responses:
+        '200':
+          description: Credit transaction processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                successful_credit:
+                  summary: Successful Credit Transaction
+                  value:
+                    transactionId: "TXN-20240713-001235"
+                    accountId: "POL-789123"
+                    type: "CREDIT"
+                    amount: 50000.00
+                    currency: "ZAR"
+                    status: "COMPLETED"
+                    reference: "CLAIM-SETTLEMENT-CS2024789"
+                    description: "Life insurance claim settlement"
+                    processedAt: "2024-07-13T10:35:20Z"
+                    cmosReference: "CMOS-TXN-789123457"
+                    balanceAfter: 65750.50
+                    bankTransferId: "BT-20240713-001235"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/AccountNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/CMOSUnavailable'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token issued by Old Mutual's authentication service.
+        Include in Authorization header: `Bearer <token>`
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Department-specific API key for CMOS access.
+        Contact api-support@oldmutual.com for provisioning.
+
+  schemas:
+    AccountBalance:
+      type: object
+      required:
+        - accountId
+        - balance
+        - currency
+        - availableBalance
+        - lastUpdated
+        - accountType
+        - accountStatus
+      properties:
+        accountId:
+          type: string
+          description: Account identifier
+          example: "POL-789123"
+        balance:
+          type: number
+          format: decimal
+          description: Current account balance
+          example: 15750.50
+        currency:
+          type: string
+          enum: [ZAR, USD, EUR]
+          description: Currency code
+          example: "ZAR"
+        availableBalance:
+          type: number
+          format: decimal
+          description: Available balance (excluding holds)
+          example: 15750.50
+        pendingHolds:
+          type: number
+          format: decimal
+          description: Total amount on hold
+          example: 0.00
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last balance update timestamp
+          example: "2024-07-13T10:30:00Z"
+        accountType:
+          type: string
+          enum: [POLICY, INVESTMENT, SAVINGS]
+          description: Type of account
+          example: "POLICY"
+        accountStatus:
+          type: string
+          enum: [ACTIVE, SUSPENDED, CLOSED]
+          description: Current account status
+          example: "ACTIVE"
+
+    DebitRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - reference
+        - description
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 1000000.00
+          description: Amount to debit (positive value)
+          example: 1500.00
+        currency:
+          type: string
+          enum: [ZAR, USD, EUR]
+          description: Transaction currency
+          example: "ZAR"
+        reference:
+          type: string
+          maxLength: 50
+          pattern: '^[A-Z0-9-]+$'
+          description: Unique transaction reference
+          example: "MONTHLY-PREMIUM-JUL2024"
+        description:
+          type: string
+          maxLength: 200
+          description: Human-readable transaction description
+          example: "Monthly premium collection for policy POL-789123"
+        debitOrder:
+          $ref: '#/components/schemas/DebitOrderDetails'
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional transaction metadata
+          example:
+            department: "SALES"
+            policyNumber: "POL-789123"
+            premiumType: "MONTHLY"
+
+    CreditRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - reference
+        - description
+        - beneficiary
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 10000000.00
+          description: Amount to credit (positive value)
+          example: 50000.00
+        currency:
+          type: string
+          enum: [ZAR, USD, EUR]
+          description: Transaction currency
+          example: "ZAR"
+        reference:
+          type: string
+          maxLength: 50
+          pattern: '^[A-Z0-9-]+$'
+          description: Unique transaction reference
+          example: "CLAIM-SETTLEMENT-CS2024789"
+        description:
+          type: string
+          maxLength: 200
+          description: Human-readable transaction description
+          example: "Life insurance claim settlement"
+        beneficiary:
+          $ref: '#/components/schemas/BeneficiaryDetails'
+        investmentDetails:
+          $ref: '#/components/schemas/InvestmentDetails'
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional transaction metadata
+          example:
+            department: "CLAIMS"
+            claimNumber: "CS2024789"
+            claimType: "LIFE_INSURANCE"
+
+    DebitOrderDetails:
+      type: object
+      required:
+        - bankAccount
+        - bank
+        - accountHolder
+        - branchCode
+      properties:
+        bankAccount:
+          type: string
+          pattern: '^[0-9]{10,11}$'
+          description: Bank account number
+          example: "62581234567"
+        bank:
+          type: string
+          enum: [FNB, "Standard Bank", Absa, Nedbank, Capitec]
+          description: Bank name
+          example: "FNB"
+        accountHolder:
+          type: string
+          maxLength: 100
+          description: Account holder name
+          example: "John Doe"
+        branchCode:
+          type: string
+          pattern: '^[0-9]{6}$'
+          description: Bank branch code
+          example: "250655"
+
+    BeneficiaryDetails:
+      type: object
+      required:
+        - bankAccount
+        - bank
+        - accountHolder
+        - branchCode
+      properties:
+        bankAccount:
+          type: string
+          pattern: '^[0-9]{10,11}$'
+          description: Beneficiary bank account number
+          example: "12345678901"
+        bank:
+          type: string
+          enum: [FNB, "Standard Bank", Absa, Nedbank, Capitec]
+          description: Beneficiary bank name
+          example: "Standard Bank"
+        accountHolder:
+          type: string
+          maxLength: 100
+          description: Beneficiary account holder name
+          example: "Jane Smith"
+        branchCode:
+          type: string
+          pattern: '^[0-9]{6}$'
+          description: Beneficiary bank branch code
+          example: "051001"
+
+    InvestmentDetails:
+      type: object
+      properties:
+        portfolioId:
+          type: string
+          description: Investment portfolio identifier
+          example: "PW-HIGH-GROWTH-001"
+        assetClass:
+          type: string
+          enum: [EQUITY-DIVIDENDS, BOND-INTEREST, MONEY-MARKET, PROPERTY-INCOME]
+          description: Asset class for investment transaction
+          example: "EQUITY-DIVIDENDS"
+
+    TransactionResponse:
+      type: object
+      required:
+        - transactionId
+        - accountId
+        - type
+        - amount
+        - currency
+        - status
+        - reference
+        - description
+        - processedAt
+        - cmosReference
+        - balanceAfter
+      properties:
+        transactionId:
+          type: string
+          description: Unique transaction identifier
+          example: "TXN-20240713-001234"
+        accountId:
+          type: string
+          description: Account identifier
+          example: "POL-789123"
+        type:
+          type: string
+          enum: [DEBIT, CREDIT]
+          description: Transaction type
+          example: "DEBIT"
+        amount:
+          type: number
+          format: decimal
+          description: Transaction amount
+          example: 1500.00
+        currency:
+          type: string
+          enum: [ZAR, USD, EUR]
+          description: Transaction currency
+          example: "ZAR"
+        status:
+          type: string
+          enum: [COMPLETED, PENDING, FAILED, REVERSED]
+          description: Transaction status
+          example: "COMPLETED"
+        reference:
+          type: string
+          description: Transaction reference
+          example: "MONTHLY-PREMIUM-JUL2024"
+        description:
+          type: string
+          description: Transaction description
+          example: "Monthly premium collection for policy POL-789123"
+        processedAt:
+          type: string
+          format: date-time
+          description: Transaction processing timestamp
+          example: "2024-07-13T10:30:15Z"
+        cmosReference:
+          type: string
+          description: CMOS system transaction reference
+          example: "CMOS-TXN-789123456"
+        balanceAfter:
+          type: number
+          format: decimal
+          description: Account balance after transaction
+          example: 14250.50
+        bankTransferId:
+          type: string
+          description: Bank transfer ID (for credit transactions)
+          example: "BT-20240713-001235"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+        - path
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid account identifier format"
+        details:
+          type: array
+          items:
+            type: string
+          description: Detailed error information
+          example: ["Account ID must match pattern: POL-XXXXXX, INV-XXXXXX, or SAV-XXXXXX"]
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: "2024-07-13T10:30:00Z"
+        path:
+          type: string
+          description: API endpoint path
+          example: "/api/v1/accounts/INVALID-123/balance"
+        requestId:
+          type: string
+          description: Request tracking ID
+          example: "req-20240713-001234"
+
+  responses:
+    BadRequest:
+      description: Invalid request format or parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "VALIDATION_ERROR"
+            message: "Invalid account identifier format"
+            details: ["Account ID must match pattern: POL-XXXXXX, INV-XXXXXX, or SAV-XXXXXX"]
+            timestamp: "2024-07-13T10:30:00Z"
+            path: "/api/v1/accounts/INVALID-123/balance"
+            requestId: "req-20240713-001234"
+
+    Unauthorized:
+      description: Authentication required or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "UNAUTHORIZED"
+            message: "Invalid or expired authentication token"
+            timestamp: "2024-07-13T10:30:00Z"
+            path: "/api/v1/accounts/POL-789123/balance"
+            requestId: "req-20240713-001234"
+
+    AccountNotFound:
+      description: Account does not exist or access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "ACCOUNT_NOT_FOUND"
+            message: "Account POL-789123 not found or access denied"
+            timestamp: "2024-07-13T10:30:00Z"
+            path: "/api/v1/accounts/POL-789123/balance"
+            requestId: "req-20240713-001234"
+
+    InsufficientFunds:
+      description: Insufficient account balance for debit transaction
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "INSUFFICIENT_FUNDS"
+            message: "Account balance (R500.00) insufficient for debit amount (R1500.00)"
+            details: ["Available balance: R500.00", "Requested debit: R1500.00"]
+            timestamp: "2024-07-13T10:30:00Z"
+            path: "/api/v1/accounts/POL-789123/debit"
+            requestId: "req-20240713-001234"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "INTERNAL_SERVER_ERROR"
+            message: "An unexpected error occurred processing your request"
+            timestamp: "2024-07-13T10:30:00Z"
+            path: "/api/v1/accounts/POL-789123/balance"
+            requestId: "req-20240713-001234"
+
+    CMOSUnavailable:
+      description: CMOS mainframe system unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "CMOS_UNAVAILABLE"
+            message: "CMOS system temporarily unavailable. Please retry in a few minutes."
+            details: ["Automatic retry will be attempted", "Contact support if issue persists"]
+            timestamp: "2024-07-13T10:30:00Z"
+            path: "/api/v1/accounts/POL-789123/balance"
+            requestId: "req-20240713-001234"
+
+tags:
+  - name: Account Operations
+    description: Core account management operations for CMOS integration

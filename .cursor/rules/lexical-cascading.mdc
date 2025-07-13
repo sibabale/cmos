@@ -1,0 +1,129 @@
+---
+alwaysApply: true
+---
+
+# Lexical Cascading Pattern Rule
+
+## Always Apply This Rule
+**This rule MUST be applied to ALL code in this project.** There are no exceptions unless explicitly noted below.
+
+## When to Apply
+Apply this pattern when you see multiple property declarations, interface/type definitions, constructor parameters, or local variable declarations in the same scope.
+
+## Core Rule
+Order properties, fields, and parameters by **data type** first (left to right), then by **name length** within each type.
+
+## Data Type Hierarchy (Shortest to Longest)
+1. `boolean` (7 chars)
+2. `number` (6 chars)
+3. `string` (6 chars)
+4. `Date` (4 chars)
+5. `Array<T>` (7+ chars)
+6. `Record<K,V>` (10+ chars)
+7. Custom types (variable length)
+
+## Within Each Type: Name Length Ordering
+Properties within the same data type should be ordered by character count (shortest to longest).
+
+## Value Assignment Rule
+For object initialization and value assignments, order by the **left-hand side** property names (before the `:` or `=` sign), not the right-hand side values.
+
+## Apply To:
+- Classes: All property declarations
+- Interfaces/Types: All property definitions
+- DTOs: Data transfer objects
+- JSON Objects: When defining structure
+- Constructor Parameters: Function/constructor parameters
+- Local Variables: When declaring multiple variables in same scope
+- Method Parameters: Function/method parameters
+- Configuration Objects: Settings and config objects
+- Object Initialization: Property assignments in object creation
+
+## Be Careful With:
+- Scoped Variables: Only apply within the same scope level
+- Inheritance: Don't reorder inherited properties
+- Required vs Optional: Maintain logical grouping when needed
+- Dependencies: Don't break dependency order requirements
+
+## Don't Apply To:
+- Function Bodies: Implementation logic
+- Control Flow: if/else, switch statements
+- Collections: Array contents
+- Database Queries: SQL or query builders
+- API Endpoints: URL routing order
+
+## Examples
+
+### Class Properties
+```js
+class StockQuote {
+  symbol;                // string (6 chars) - shortest string
+  pe;                    // number (2 chars) - shortest number
+  eps;                   // number (3 chars)
+  price;                 // number (5 chars)
+  bookValue;             // number (9 chars)
+  marketCap;             // number (10 chars)
+  priceToBook;           // number (11 chars)
+  currentRatio;          // number (12 chars)
+  debtToEquity;          // number (12 chars)
+  earningsGrowthRate;    // number (16 chars)
+}
+```
+
+### Object Initialization (Left-hand side ordering)
+```js
+const stockQuote = {
+  bookValue: parseFloat(json.BookValue?.replace(/,/g, "") ?? "0"),
+  currentRatio: parseFloat(json.CurrentRatio?.replace(/,/g, "") ?? "0"),
+  debtToEquity: parseFloat(json.DebtToEquityRatio?.replace(/,/g, "") ?? "0"),
+  earningsGrowthRate: parseFloat(json.QuarterlyEarningsGrowthYOY?.replace(/,/g, "") ?? "0"),
+  eps: parseFloat(epsProp?.replace(/,/g, "") ?? "0"),
+  marketCap: parseFloat(json.MarketCapitalization?.replace(/,/g, "") ?? "0"),
+  pe: parseFloat(peProp?.replace(/,/g, "") ?? "0"),
+  price: parseFloat(priceProp?.replace(/,/g, "") ?? "0"),
+  priceToBook: parseFloat(json.PriceToBookRatio?.replace(/,/g, "") ?? "0"),
+  symbol: symbol
+};
+```
+
+### Interface/Type Properties
+```ts
+type StockService = {
+  isActive: boolean;         // boolean (8 chars) - shortest boolean
+  apiKey: string;            // string (6 chars) - shortest string
+  baseUrl: string;           // string (7 chars)
+  endpoint: string;          // string (9 chars)
+  rateLimit: number;         // number (9 chars) - shortest number
+  timeout: number;           // number (7 chars)
+};
+```
+
+### Constructor Parameters
+```js
+class StockService {
+  constructor(apiKey, baseUrl, rateLimit, timeout) {
+    // ...
+  }
+}
+// apiKey: string (6 chars) - shortest string
+// baseUrl: string (7 chars)
+// rateLimit: number (9 chars) - shortest number
+// timeout: number (7 chars)
+```
+
+### Local Variables (Same Scope)
+```js
+function processData() {
+  let isValid = true;            // boolean (7 chars) - shortest boolean
+  let name = "test";             // string (4 chars) - shortest string
+  let description = "long description"; // string (11 chars)
+  let amount = 100.0;            // number (6 chars) - shortest number
+  let totalAmount = 500.0;       // number (10 chars)
+}
+```
+
+## Exceptions
+- When logical grouping is more important (e.g., related properties)
+- When dependency order matters (e.g., database operations)
+- When following external API contracts
+- When maintaining backward compatibility

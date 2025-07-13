@@ -1,0 +1,64 @@
+---
+alwaysApply: true
+---
+
+# Keep It Simple Rule
+
+## Core Principle
+**Prefer simple, readable code over complex abstractions unless there's a clear, compelling benefit.**
+
+## What to Avoid
+- **Unnecessary utility functions** for simple configurations
+- **Over-abstraction** when the original code is already clean and readable
+- **Moving configuration around** without solving real problems
+- **Creating abstractions** just for the sake of having abstractions
+
+## When to Use Abstractions
+Only create abstractions when:
+- You have **complex, reusable configurations** across multiple projects
+- You're building a **framework or library** that others will use
+- You have **hundreds of lines** of configuration that's hard to read
+- You have **multiple environments** with significantly different configurations
+
+## Questions to Ask Before Adding Abstractions
+1. **Is the current code hard to read or understand?**
+2. **Will this abstraction be reused elsewhere?**
+3. **Does this solve a real problem, or just move code around?**
+4. **Is the complexity worth the benefit?**
+
+## Examples
+
+### ❌ Don't Do This (Over-engineering)
+```js
+// Unnecessary utility function for simple configuration
+function addCorsPolicy(app) {
+  app.use(cors({ /* simple config */ }));
+}
+
+// In main.js
+addCorsPolicy(app); // Just moves code around
+```
+
+### ✅ Do This (Simple and Clear)
+```js
+// In main.js - direct and readable
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+```
+
+## Remember
+- **Simple code is maintainable code**
+- **Readability over cleverness**
+- **When in doubt, keep it simple**
+- **You can always refactor later if needed**
+description:
+globs:
+alwaysApply: true
+---
+description:
+globs:
+alwaysApply: false
+---
