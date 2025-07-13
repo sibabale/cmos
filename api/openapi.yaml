@@ -3,7 +3,7 @@ info:
   title: CMOS Account Management API
   version: 1.0.0
   description: |
-    Old Mutual's CMOS Account Management API provides standardized access to TCS BaNCS Core Modern Operating System (CMOS) for account operations across all departments.
+    CMOS Account Management API provides standardized access to TCS BaNCS Core Modern Operating System (CMOS) for account operations across all departments.
     
     This API simplifies complex mainframe interactions into modern REST endpoints for:
     - Premium collections (Sales Team)
@@ -19,17 +19,17 @@ info:
     - End-to-end encryption and audit trails
     
   contact:
-    name: Old Mutual API Team
-    email: api-support@oldmutual.com
+    name: Test API Team
+    email: api-support@test.com
   license:
-    name: Old Mutual Internal Use Only
+    name: Test Project - Internal Use Only
     
 servers:
-  - url: https://api.oldmutual.com/cmos/v1
+  - url: https://api.test.com/cmos/v1
     description: Production CMOS API
-  - url: https://api-staging.oldmutual.com/cmos/v1
+  - url: https://api-staging.test.com/cmos/v1
     description: Staging Environment
-  - url: https://api-sandbox.oldmutual.com/cmos/v1
+  - url: https://api-sandbox.test.com/cmos/v1
     description: Sandbox Environment (Test Data)
 
 security:
@@ -63,7 +63,7 @@ paths:
             pattern: '^(POL|INV|SAV)-[0-9]{6}$'
             example: "POL-789123"
           description: |
-            Account identifier in Old Mutual format:
+            Account identifier in CMOS format:
             - POL-XXXXXX: Policy accounts
             - INV-XXXXXX: Investment accounts  
             - SAV-XXXXXX: Savings accounts
@@ -335,7 +335,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: |
-        JWT token issued by Old Mutual's authentication service.
+                    JWT token issued by the authentication service.
         Include in Authorization header: `Bearer <token>`
     ApiKeyAuth:
       type: apiKey
@@ -343,7 +343,7 @@ components:
       name: X-API-Key
       description: |
         Department-specific API key for CMOS access.
-        Contact api-support@oldmutual.com for provisioning.
+                  Contact api-support@test.com for provisioning.
 
   schemas:
     AccountBalance:

@@ -1,7 +1,7 @@
 {
-  "name": "old-mutual-cmos-api",
+  "name": "cmos-test-api",
   "version": "1.0.0",
-  "description": "Old Mutual CMOS Account Management API - Integration layer for TCS BaNCS Core Modern Operating System",
+  "description": "CMOS Account Management API - Test integration layer for TCS BaNCS Core Modern Operating System",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
@@ -14,15 +14,15 @@
     "clean": "rm -rf dist"
   },
   "keywords": [
-    "old-mutual",
     "cmos",
     "banking",
     "api",
     "typescript",
     "node",
-    "tcs-bancs"
+    "tcs-bancs",
+    "test"
   ],
-  "author": "Old Mutual API Team",
+  "author": "Test API Team",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
