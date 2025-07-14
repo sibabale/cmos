@@ -1,3 +1,6 @@
 [submodule "cmos-csharp"]
 	path = cmos-csharp
 	url = git@github.com:sibabale/cmos-csharp.git
+[submodule "mintlify-docs"]
+	path = mintlify-docs
+	url = git@github.com:sibabale/mintlify-docs.git
