@@ -18,16 +18,17 @@ This is a test project that provides a REST API interface for CMOS account manag
 
 ```bash
 # Install dependencies
-npm install
+nuget restore
 
 # Start development server
-npm run dev
+# (Replace with your .NET run command, e.g.,)
+dotnet run
 
 # Build for production
-npm run build
+dotnet build
 
 # Start production server
-npm start
+dotnet run --configuration Release
 ```
 
 ## API Endpoints
